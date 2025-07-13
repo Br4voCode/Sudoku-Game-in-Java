@@ -1,6 +1,7 @@
 package ui.components;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -87,6 +88,15 @@ public class CellComponent extends JTextField {
 
         configureDocumentFilter();
         configureMouseListeners();
+        
+        // Dentro de configureComponent(), después de otros listeners
+        addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && cell.isEditable()) {
+                    showNumberSelectorPopup(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
     }
 
     private void configureDocumentFilter() {
@@ -145,6 +155,17 @@ public class CellComponent extends JTextField {
                 }
             }
         });
+    }
+    
+    private void showNumberSelectorPopup(Component invoker, int x, int y) {
+        NumberSelectorPopup popup = new NumberSelectorPopup(new NumberSelectorPopup.NumberSelectionListener() {
+            public void numberSelected(int number) {
+                setText(String.valueOf(number));
+                cell.setValue(number);
+            }
+        });
+
+        popup.show(this, this.getWidth(), this.getHeight());
     }
 
     private void repaintVisualState() {

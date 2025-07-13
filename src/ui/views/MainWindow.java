@@ -4,9 +4,8 @@ import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
 
-import ui.components.BoardPanel;
 import logic.SudokuController;
-import model.Board;
+import ui.components.BoardPanel;
 
 public class MainWindow extends JFrame {
 
