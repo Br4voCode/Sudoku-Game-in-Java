@@ -28,7 +28,8 @@ SudokuProject/
 │   └── util/          # Utilities: PuzzleLoader, Timer, etc.
 ├── bin/               # Compiled .class files (ignored by Git)
 ├── .gitignore
-└── README.md
+├── README.md
+└── LICENSE
 ```
 
 ---
@@ -45,7 +46,7 @@ SudokuProject/
    - Select the project folder
 
 3. **Run the main class**
-   - Locate `Main.java` (or `SudokuApp.java`) inside the `src/` directory
+   - Locate `SudokuApp.java` inside the `src/app/` directory
    - Right-click > `Run As > Java Application`
 
 ---
