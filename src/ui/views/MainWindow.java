@@ -1,28 +1,33 @@
 package ui.views;
 
+import java.awt.BorderLayout;
+
 import javax.swing.JFrame;
+
 import ui.components.BoardPanel;
+import logic.SudokuController;
 import model.Board;
 
 public class MainWindow extends JFrame {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public MainWindow() {
+    private SudokuController controller;
+
+    public MainWindow() {
         super("Sudoku Game");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-        Board board = new Board();
-        board.loadFromMatrix(getSampleEasyBoard());
+        controller = new SudokuController();
+        controller.loadBoardFromMatrix(getSampleEasyBoard());
 
-        BoardPanel boardPanel = new BoardPanel(board);
+        BoardPanel boardPanel = controller.getBoardPanel();
+        add(boardPanel, BorderLayout.CENTER);
 
-        add(boardPanel);
+        // Puedes añadir botones o menú en el futuro
         pack();
-        setLocationRelativeTo(null); // Center window
+        setLocationRelativeTo(null); // Centrar
     }
 
     private int[][] getSampleEasyBoard() {
@@ -39,5 +44,4 @@ public class MainWindow extends JFrame {
         };
     }
 }
-
 
