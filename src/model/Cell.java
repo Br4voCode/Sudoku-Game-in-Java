@@ -1,6 +1,7 @@
 package model;
 
 public class Cell {
+
     private int row;
     private int col;
     private String id;
@@ -59,5 +60,33 @@ public class Cell {
     public void setEditable(boolean editable) {
         this.editable = editable;
     }
-}
 
+    public boolean isEmpty() {
+        return value == 0;
+    }
+
+    public void clear() {
+        this.value = 0;
+    }
+
+    public boolean isValidValue(int number) {
+        return number >= 1 && number <= 9;
+    }
+
+    public boolean trySetValue(int number) {
+        if (!editable || !isValidValue(number)) {
+            return false;
+        }
+        this.value = number;
+        return true;
+    }
+
+    public boolean trySetValueFromString(String text) {
+        try {
+            int num = Integer.parseInt(text);
+            return trySetValue(num);
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+    }
+}

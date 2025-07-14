@@ -1,8 +1,11 @@
 package ui.components;
 
+import intefaces.CellValueValidator;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 
+import logic.SudokuController;
 import model.Board;
 import model.Cell;
 
@@ -15,9 +18,10 @@ public class BoardPanel extends JPanel {
     private static final int GRID_SIZE = 9;
     private static final Border BOARD_BORDER = BorderFactory.createLineBorder(Color.BLACK, 2);
 
-    private final Board board;
+    private Board board;
     private final CellComponent[][] components;
     private CellComponent selectedCell;
+    private SudokuController controller;
 
     public BoardPanel(Board board) {
         this.board = board;
@@ -32,6 +36,14 @@ public class BoardPanel extends JPanel {
             for (int col = 0; col < GRID_SIZE; col++) {
                 Cell cell = board.getCell(row, col);
                 CellComponent cellComp = new CellComponent(cell);
+
+                // Aquí inyectas el validador
+                cellComp.setValidator(new CellValueValidator() {
+                    public boolean isCorrectValue(int r, int c, int v) {
+                        return controller.isCorrectMove(r, c, v);
+                    }
+                });
+
                 components[row][col] = cellComp;
                 applyBoxBorder(cellComp, row, col);
                 add(cellComp);
@@ -92,6 +104,17 @@ public class BoardPanel extends JPanel {
         });
     }
 
+    public void setBoard(Board newBoard) {
+        this.board = newBoard;
+        // Actualiza las celdas con el nuevo tablero
+        for (int row = 0; row < GRID_SIZE; row++) {
+            for (int col = 0; col < GRID_SIZE; col++) {
+                components[row][col].setCell(board.getCell(row, col));
+            }
+        }
+        repaint();
+    }
+    
     private Point findCoordinatesOf(CellComponent target) {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {

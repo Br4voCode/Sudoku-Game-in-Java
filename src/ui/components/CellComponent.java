@@ -1,5 +1,7 @@
 package ui.components;
 
+import intefaces.CellValueValidator;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -36,7 +38,12 @@ public class CellComponent extends JTextField {
     private Cell cell;
     private boolean selected = false;
     private boolean sameValue = false;
-    private boolean highlightRowCol = false;
+    private boolean highlightRowCol = false;  
+    private CellValueValidator validator;
+
+    public void setValidator(CellValueValidator validator) {
+        this.validator = validator;
+    }
 
     public CellComponent(Cell cell) {
         setCell(cell);
@@ -69,12 +76,10 @@ public class CellComponent extends JTextField {
     }
 
     public void updateFromCell() {
-        setText(cell.getValue() == 0 ? "" : String.valueOf(cell.getValue()));
+        setText(cell.isEmpty() ? "" : String.valueOf(cell.getValue()));
         setEditable(cell.isEditable());
         repaintVisualState();
     }
-
-    // ================== MÉTODOS PRIVADOS ===================
 
     private void configureComponent() {
         setHorizontalAlignment(CENTER);
@@ -88,8 +93,7 @@ public class CellComponent extends JTextField {
 
         configureDocumentFilter();
         configureMouseListeners();
-        
-        // Dentro de configureComponent(), después de otros listeners
+
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && cell.isEditable()) {
@@ -104,47 +108,50 @@ public class CellComponent extends JTextField {
             @Override
             public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
                 if (string == null) return;
-                String filtered = string.replaceAll("[^1-9]", "");
-                if ((fb.getDocument().getLength() + filtered.length()) <= 1) {
-                    super.insertString(fb, offset, filtered, attr);
+                if (string.length() == 1 && cell.isValidValue(Character.getNumericValue(string.charAt(0)))) {
+                    fb.remove(0, fb.getDocument().getLength());
+                    fb.insertString(0, string, attr);
+                    cell.trySetValueFromString(string);
                 }
             }
 
             @Override
             public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
                 if (text == null) return;
-                String filtered = text.replaceAll("[^1-9]", "");
-                int newLength = fb.getDocument().getLength() - length + filtered.length();
-                if (newLength <= 1) {
-                    super.replace(fb, offset, length, filtered, attrs);
+                if (text.length() == 1 && cell.isValidValue(Character.getNumericValue(text.charAt(0)))) {
+                    fb.remove(0, fb.getDocument().getLength());
+                    fb.insertString(0, text, attrs);
+                    cell.trySetValueFromString(text);
+                } else if (text.isEmpty()) {
+                    fb.remove(0, fb.getDocument().getLength());
+                    cell.clear();
                 }
             }
 
             @Override
             public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-                super.remove(fb, offset, length);
+                fb.remove(offset, length);
+                if (fb.getDocument().getLength() == 0) {
+                    cell.clear();
+                }
             }
         });
     }
 
     private void configureMouseListeners() {
         addMouseListener(new MouseAdapter() {
-
-            @Override
             public void mouseEntered(MouseEvent e) {
                 if (!selected && !highlightRowCol) {
                     setBackground(COLOR_FILA_COLUMNA);
                 }
             }
 
-            @Override
             public void mouseExited(MouseEvent e) {
                 if (!selected && !highlightRowCol) {
                     setBackground(cell.isEditable() ? COLOR_EDITABLE : COLOR_NO_EDITABLE);
                 }
             }
 
-            @Override
             public void mousePressed(MouseEvent e) {
                 Container parent = getParent();
                 while (parent != null && !(parent instanceof BoardPanel)) {
@@ -156,12 +163,19 @@ public class CellComponent extends JTextField {
             }
         });
     }
-    
+
     private void showNumberSelectorPopup(Component invoker, int x, int y) {
         NumberSelectorPopup popup = new NumberSelectorPopup(new NumberSelectorPopup.NumberSelectionListener() {
             public void numberSelected(int number) {
-                setText(String.valueOf(number));
-                cell.setValue(number);
+                if (validator != null && !validator.isCorrectValue(cell.getRow(), cell.getCol(), number)) {
+                    setBackground(Color.PINK); // Marcar visualmente el error
+                    return;
+                }
+
+                if (cell.trySetValue(number)) {
+                    setText(String.valueOf(number));
+                    repaintVisualState();
+                }
             }
         });
 
