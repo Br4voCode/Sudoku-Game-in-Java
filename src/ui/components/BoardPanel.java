@@ -37,18 +37,25 @@ public class BoardPanel extends JPanel {
                 Cell cell = board.getCell(row, col);
                 CellComponent cellComp = new CellComponent(cell);
 
-                // Aquí inyectas el validador
-                cellComp.setValidator(new CellValueValidator() {
-                    public boolean isCorrectValue(int r, int c, int v) {
-                        return controller.isCorrectMove(r, c, v);
-                    }
-                });
-
                 components[row][col] = cellComp;
                 applyBoxBorder(cellComp, row, col);
                 add(cellComp);
             }
         }
+    }
+    
+    public void setController(final SudokuController controller) {
+        this.controller = controller;
+        // Ahora que está asignado, puedes usarlo
+        forEachCell(new CellAction() {
+            public void apply(int row, int col, CellComponent cell) {
+                cell.setValidator(new CellValueValidator() {
+                    public boolean isCorrectValue(int r, int c, int v) {
+                        return controller.isCorrectMove(r, c, v);
+                    }
+                });
+            }
+        });
     }
 
     private void applyBoxBorder(JComponent comp, int row, int col) {

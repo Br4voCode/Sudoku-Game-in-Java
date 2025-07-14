@@ -23,7 +23,6 @@ public class MainWindow extends JFrame {
         pack();
         setLocationRelativeTo(null);
 
-        // Generar un puzzle nuevo con 40 huecos
         controller.generateNewPuzzle(55);
     }
 }

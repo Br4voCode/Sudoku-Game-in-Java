@@ -30,8 +30,9 @@ public class CellComponent extends JTextField {
     private static final Color COLOR_NO_EDITABLE = new Color(230, 230, 230);
     private static final Color COLOR_EDITABLE = Color.WHITE;
     private static final Color COLOR_TEXTO_NORMAL = Color.BLACK;
-    private static final Color COLOR_TEXTO_EDITABLE = Color.BLUE;
+    private static final Color COLOR_TEXTO_EDITABLE = Color.BLACK;
     private static final Color COLOR_TEXTO_VALOR_IGUAL = Color.BLUE;
+    private static final Color COLOR_TEXTO_INCORRECTO = Color.RED;
     private static final Font FUENTE = new Font("SansSerif", Font.BOLD, 20);
     private static final Dimension TAMANO_CELDA = new Dimension(50, 50);
 
@@ -40,6 +41,7 @@ public class CellComponent extends JTextField {
     private boolean sameValue = false;
     private boolean highlightRowCol = false;  
     private CellValueValidator validator;
+    private boolean isValueCorrect = true;
 
     public void setValidator(CellValueValidator validator) {
         this.validator = validator;
@@ -108,23 +110,49 @@ public class CellComponent extends JTextField {
             @Override
             public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
                 if (string == null) return;
+
                 if (string.length() == 1 && cell.isValidValue(Character.getNumericValue(string.charAt(0)))) {
                     fb.remove(0, fb.getDocument().getLength());
                     fb.insertString(0, string, attr);
-                    cell.trySetValueFromString(string);
+
+                    if (cell.trySetValueFromString(string)) {
+                        if (validator != null) {
+                            isValueCorrect = validator.isCorrectValue(cell.getRow(), cell.getCol(), cell.getValue());
+                        } else {
+                            isValueCorrect = true;
+                        }
+                    } else {
+                        isValueCorrect = true;
+                    }
+
+                    repaintVisualState();
                 }
             }
 
             @Override
             public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
                 if (text == null) return;
+
                 if (text.length() == 1 && cell.isValidValue(Character.getNumericValue(text.charAt(0)))) {
                     fb.remove(0, fb.getDocument().getLength());
                     fb.insertString(0, text, attrs);
-                    cell.trySetValueFromString(text);
+
+                    if (cell.trySetValueFromString(text)) {
+                        if (validator != null) {
+                            isValueCorrect = validator.isCorrectValue(cell.getRow(), cell.getCol(), cell.getValue());
+                        } else {
+                            isValueCorrect = true;
+                        }
+                    } else {
+                        isValueCorrect = true;
+                    }
+
+                    repaintVisualState();
                 } else if (text.isEmpty()) {
                     fb.remove(0, fb.getDocument().getLength());
                     cell.clear();
+                    isValueCorrect = true;
+                    repaintVisualState();
                 }
             }
 
@@ -133,6 +161,8 @@ public class CellComponent extends JTextField {
                 fb.remove(offset, length);
                 if (fb.getDocument().getLength() == 0) {
                     cell.clear();
+                    isValueCorrect = true;
+                    repaintVisualState();
                 }
             }
         });
@@ -166,17 +196,19 @@ public class CellComponent extends JTextField {
 
     private void showNumberSelectorPopup(Component invoker, int x, int y) {
         NumberSelectorPopup popup = new NumberSelectorPopup(new NumberSelectorPopup.NumberSelectionListener() {
-            public void numberSelected(int number) {
-                if (validator != null && !validator.isCorrectValue(cell.getRow(), cell.getCol(), number)) {
-                    setBackground(Color.PINK); // Marcar visualmente el error
-                    return;
-                }
+        	public void numberSelected(int number) {
+        	    if (cell.trySetValue(number)) {
+        	        setText(String.valueOf(number));
 
-                if (cell.trySetValue(number)) {
-                    setText(String.valueOf(number));
-                    repaintVisualState();
-                }
-            }
+        	        if (validator != null) {
+        	            isValueCorrect = validator.isCorrectValue(cell.getRow(), cell.getCol(), number);
+        	        } else {
+        	            isValueCorrect = true;
+        	        }
+
+        	        repaintVisualState();
+        	    }
+        	}
         });
 
         popup.show(this, this.getWidth(), this.getHeight());
@@ -191,7 +223,9 @@ public class CellComponent extends JTextField {
             setBackground(cell.isEditable() ? COLOR_EDITABLE : COLOR_NO_EDITABLE);
         }
 
-        if (sameValue && !selected) {
+        if (!isValueCorrect) {
+            setForeground(COLOR_TEXTO_INCORRECTO);
+        } else if (sameValue && !selected) {
             setForeground(COLOR_TEXTO_VALOR_IGUAL);
         } else {
             setForeground(cell.isEditable() ? COLOR_TEXTO_EDITABLE : COLOR_TEXTO_NORMAL);

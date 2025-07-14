@@ -11,9 +11,10 @@ public class SudokuController {
     private BoardGenerator generator;
 
     public SudokuController() {
-        this.generator = new BoardGenerator();
         this.board = new Board();
+        this.generator = new BoardGenerator(); 
         this.boardPanel = new BoardPanel(board);
+        this.boardPanel.setController(this); 
     }
 
     public BoardPanel getBoardPanel() {
@@ -21,11 +22,12 @@ public class SudokuController {
     }
 
     public void generateNewPuzzle(int holes) {
-        generator.generateCompleteBoard();      // Genera un tablero completo
-        generator.removeNumbers(holes);          // Remueve 'holes' números
-        this.board = generator.getBoard();       // Actualiza referencia del tablero
-        this.boardPanel.setBoard(board);         // Actualiza tablero en panel
-        boardPanel.refreshFromModel();            // Refresca vista
+        Board full = generator.generateCompleteBoard();
+        this.solutionBoard = full.clone();                 // Guardar copia de solución
+        generator.removeNumbers(holes);                    // Modifica solo la copia interna
+        this.board = generator.getBoard();                 // Obtiene el puzzle incompleto
+        this.boardPanel.setBoard(board);
+        boardPanel.refreshFromModel();
     }
 
     public void loadBoardFromMatrix(int[][] matrix) {
