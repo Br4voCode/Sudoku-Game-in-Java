@@ -32,7 +32,6 @@ public class NumberSelectorPopup extends JPopupMenu {
             btn.setMaximumSize(buttonSize);
 
             btn.addActionListener(new ActionListener() {
-                @Override
                 public void actionPerformed(ActionEvent e) {
                     listener.numberSelected(num);
                     setVisible(false);
