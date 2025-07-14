@@ -63,6 +63,20 @@ public class Board {
     public boolean isValid() {
         return checkRows() && checkColumns() && checkBoxes();
     }
+    
+    public Board clone() {
+        Board copy = new Board();
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                Cell original = this.getCell(row, col);
+                Cell cloned = new Cell(original.getRow(), original.getCol());
+                cloned.setValue(original.getValue());
+                cloned.setEditable(original.isEditable());
+                copy.setCell(row, col, cloned);
+            }
+        }
+        return copy;
+    }
 
     private boolean checkRows() {
         for (int row = 0; row < 9; row++) {
