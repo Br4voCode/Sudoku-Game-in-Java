@@ -30,18 +30,21 @@ public class BoardPanel extends JPanel {
         setBorder(BOARD_BORDER);
         buildGrid();
     }
-
-    private void buildGrid() {
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
-                Cell cell = board.getCell(row, col);
-                CellComponent cellComp = new CellComponent(cell);
-
-                components[row][col] = cellComp;
-                applyBoxBorder(cellComp, row, col);
-                add(cellComp);
-            }
+    
+    @Override
+    public Dimension getPreferredSize() {
+        // Usa el menor entre ancho y alto del contenedor para mantener proporción cuadrada
+        Container parent = getParent();
+        if (parent != null) {
+            int size = Math.min(parent.getWidth(), parent.getHeight());
+            return new Dimension(size, size);
         }
+        return new Dimension(450, 450); // valor por defecto
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(300, 300); // tamaño mínimo aceptable del tablero
     }
     
     public void setController(final SudokuController controller) {
@@ -56,14 +59,6 @@ public class BoardPanel extends JPanel {
                 });
             }
         });
-    }
-
-    private void applyBoxBorder(JComponent comp, int row, int col) {
-        int top = (row % 3 == 0) ? 2 : 1;
-        int left = (col % 3 == 0) ? 2 : 1;
-        int bottom = (row == GRID_SIZE - 1) ? 2 : 1;
-        int right = (col == GRID_SIZE - 1) ? 2 : 1;
-        comp.setBorder(BorderFactory.createMatteBorder(top, left, bottom, right, Color.BLACK));
     }
 
     public void refreshFromModel() {
@@ -120,6 +115,31 @@ public class BoardPanel extends JPanel {
             }
         }
         repaint();
+    } 
+
+    public Board getBoard() {
+        return board;
+    }
+    
+    private void buildGrid() {
+        for (int row = 0; row < GRID_SIZE; row++) {
+            for (int col = 0; col < GRID_SIZE; col++) {
+                Cell cell = board.getCell(row, col);
+                CellComponent cellComp = new CellComponent(cell);
+
+                components[row][col] = cellComp;
+                applyBoxBorder(cellComp, row, col);
+                add(cellComp);
+            }
+        }
+    }
+
+    private void applyBoxBorder(JComponent comp, int row, int col) {
+        int top = (row % 3 == 0) ? 2 : 1;
+        int left = (col % 3 == 0) ? 2 : 1;
+        int bottom = (row == GRID_SIZE - 1) ? 2 : 1;
+        int right = (col == GRID_SIZE - 1) ? 2 : 1;
+        comp.setBorder(BorderFactory.createMatteBorder(top, left, bottom, right, Color.BLACK));
     }
     
     private Point findCoordinatesOf(CellComponent target) {
@@ -139,10 +159,6 @@ public class BoardPanel extends JPanel {
                 action.apply(row, col, components[row][col]);
             }
         }
-    }
-
-    public Board getBoard() {
-        return board;
     }
 
     // Pequeña interfaz funcional interna (sin usar lambdas)
